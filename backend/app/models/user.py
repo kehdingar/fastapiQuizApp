@@ -3,7 +3,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import List
 from datetime import datetime
 from fastapi import HTTPException
-from pydantic import validator
+from pydantic import field_validator
 
 
 from enum import Enum
@@ -19,7 +19,6 @@ class User(SQLModel, table=True):
     email: str = Field(sa_column=Column("email", String, unique=True))
     password: str = Field(sa_column=Column("password", String))
     role: Role = Field(sa_column=Column("role", String, default=Role.STUDENT))
-    reports: List['Report'] = Relationship(back_populates="users")
     is_active: bool = Field(sa_column=Column("is_active", Boolean, default=True))
     is_superuser: bool = Field(sa_column=Column("is_superuser", Boolean, default=False))
     created_at: datetime = Field(sa_column=Column("created_at", DateTime, default=datetime.now))
@@ -27,7 +26,7 @@ class User(SQLModel, table=True):
 
 
 
-@validator("role")
+@field_validator("role")
 def validate_role(cls, role: Role):
     # go to database and check user role
     if role not in [Role.INSTRUCTOR, Role.STUDENT]:
