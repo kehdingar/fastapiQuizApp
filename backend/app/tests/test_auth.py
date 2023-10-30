@@ -1,12 +1,12 @@
 from app.schemas.user import UserCreate
-from app.api.auth import get_db
+from app.api.utils.database import get_db
 from app.main import app
 from sqlmodel import SQLModel
 from sqlalchemy import create_engine,StaticPool
 from sqlalchemy.orm import sessionmaker
 from app.models import *
 from app.models.user import User
-from app.api.auth import get_password_hash
+from app.api.utils.users import get_password_hash,verify_password
 from app.api.utils.users import get_user
 
 
@@ -38,8 +38,8 @@ def setup():
     SQLModel.metadata.create_all(bind=engine)
     with TestingSessionLocal() as session:
         # Create a user at the beginning of the test
-        user_data = UserCreate(email='firstTest@quiz.com', password='firstTestPassword')
-        db_user = User(**user_data.model_dump(), hashed_password=get_password_hash(user_data.password))
+        user_data = UserCreate(email='firstTest@user.com', password=get_password_hash('firstTestPassword'))
+        db_user = User(**user_data.model_dump())
         session.add(db_user)
         session.commit()
         session.refresh(db_user)
@@ -62,6 +62,19 @@ def test_register_user(test_client):
 
 def test_verify_created_user():
     db = TestingSessionLocal()
-    user = get_user(db=db, email="firstTest@quiz.com")
-    assert user.email =="firstTest@quiz.com"
-    assert user.password =="firstTestPassword"
+    user = get_user(db=db, email="firstTest@user.com")
+    password = get_password_hash("firstTest@user.com")
+    assert user.email =="firstTest@user.com"
+    assert True == verify_password("firstTest@user.com",password )
+
+def test_login(test_client):
+    # Simulate a login request
+    user_data = {
+        "email": "firstTest@user.com",
+        "password": "firstTestPassword"
+    }
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+    # Assert the response status code and the returned data
+    assert response.status_code == 202 
+    assert "access_token" in response.json()
+    assert "token_type" in response.json()

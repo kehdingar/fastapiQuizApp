@@ -16,3 +16,7 @@ class UserCreateResponse(UserBase):
     created_at: datetime
     is_superuser: bool
     id: int
+
+class UserLogin(UserBase):
+    password:str
+
