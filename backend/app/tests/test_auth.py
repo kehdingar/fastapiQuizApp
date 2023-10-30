@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from app.models import *
 from app.models.user import User
 from app.api.auth import get_password_hash
+from app.api.utils.users import get_user
 
 
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
@@ -58,3 +59,9 @@ def test_register_user(test_client):
     # Assert the response status code and the returned user data
     assert response.status_code == 201
     assert response.json()["email"] == "test@example.com"
+
+def test_verify_created_user():
+    db = TestingSessionLocal()
+    user = get_user(db=db, email="firstTest@quiz.com")
+    assert user.email =="firstTest@quiz.com"
+    assert user.password =="firstTestPassword"
