@@ -11,9 +11,9 @@ load_dotenv(dotenv_path)
 
 if os.getenv("TESTING"):
     SQLALCHEMY_DATABASE_URL = "sqlite:///test.db"
-    # When about to start test for the first time, set the python environment varaible on commandline to be true like so
-    # command: export TESTING=1
-    # then run test
+    # When about to start test for the first time,set the python environment varaible on commandline to be true like so
+    # command : export TESTING=1
+    # then run test in this case - command : pytest app/tests -v
 else:
     SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
 
