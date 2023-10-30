@@ -11,7 +11,7 @@ class UserCreate(UserBase):
 
 class UserCreateResponse(UserBase):
     role: str
-    is_active: str
+    is_active: bool
     modified_at: datetime
     created_at: datetime
     is_superuser: bool
