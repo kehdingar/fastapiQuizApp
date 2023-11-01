@@ -78,3 +78,15 @@ def test_login(test_client):
     assert response.status_code == 202 
     assert "access_token" in response.json()
     assert "token_type" in response.json()
+
+
+def test_reset_password(test_client):
+    # Test case where email is registered
+    response = test_client.post("/api/v1/auth/reset-password", json={"email": "firstTest@user.com"})
+    assert response.status_code == 200
+    assert response.json() == {"detail": "Password reset email sent"}
+
+    # Test case where email is not registered
+    response = test_client.post("/api/v1/auth/reset-password", json={"email": "nonexistent@example.com"})
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Email not registered"}

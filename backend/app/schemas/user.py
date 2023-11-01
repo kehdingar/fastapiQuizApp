@@ -20,3 +20,5 @@ class UserCreateResponse(UserBase):
 class UserLogin(UserBase):
     password:str
 
+class UserResetPassword(UserBase):
+    pass
