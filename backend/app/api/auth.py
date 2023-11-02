@@ -2,7 +2,8 @@ from dotenv import load_dotenv,find_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.schemas.user import UserCreate,UserCreateResponse, UserLogin, UserResetPassword
+from jose import JWTError, jwt
+from app.schemas.user import UserCreate,UserCreateResponse, UserLogin, UserResetPassword, UserResetPasswordConfirm
 from app.api.utils.database import get_db
 from app.api.utils.users import get_user, get_password_hash,verify_password,create_access_token
 from app.api.utils.email import send_password_reset_email
@@ -48,7 +49,40 @@ def reset_password(user_email: UserResetPassword, db: Session = Depends(get_db))
     return {"detail": "Password reset email sent"}
 
 
+# @router.post("/reset-password-confirm")
+# def reset_password_confirm(user_data: UserResetPasswordConfirm, db: Session = Depends(get_db)):
+#     try:
+#         payload = jwt.decode(user_data.token, os.environ.get("SECRET_KEY"), algorithms=[os.environ.get("ALGORITHM") ])
+#         email = payload.get("email")
+#         user = get_user(db=db, email=email)
+#         if not user:
+#             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not registered")
+                
+#         if user.password == user_data.password:
+#             raise HTTPException(status_code=status.HTTP_226_IM_USED, detail="New password same as old password. Please change password")
+#         user.password = get_password_hash(user_data.password)
+#         db.commit()
+#         return {"detail": "Password reset successful"}
+#     except JWTError:
+#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
 
-
+@router.post("/reset-password-confirm")
+def reset_password_confirm(user_data: UserResetPasswordConfirm, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(user_data.token, os.environ.get("SECRET_KEY"), algorithms=[os.environ.get("ALGORITHM")])
+        email = payload.get("email")
+        user = get_user(db=db, email=email)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not registered")
+                
+        if verify_password(user_data.password, user.password):
+            raise HTTPException(status_code=status.HTTP_226_IM_USED, detail="New password is the same as the old password. Please choose a different password")
+        
+        user.password = get_password_hash(user_data.password)
+        db.commit()
+        db.refresh(user)
+        return {"detail": "Password reset successful"}
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
 
 

@@ -22,3 +22,7 @@ class UserLogin(UserBase):
 
 class UserResetPassword(UserBase):
     pass
+
+class UserResetPasswordConfirm(BaseModel):
+    token: str
+    password: str

@@ -90,3 +90,70 @@ def test_reset_password(test_client):
     response = test_client.post("/api/v1/auth/reset-password", json={"email": "nonexistent@example.com"})
     assert response.status_code == 400
     assert response.json() == {"detail": "Email not registered"}
+
+def test_reset_password_confirm_same_password(test_client):
+
+    user_data = {
+        "email": "firstTest@user.com",
+        "password": "firstTestPassword"
+    }
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+    content_dict = response.json()
+
+    # Access the access_token
+    token = content_dict["access_token"]
+
+    user_reset_data_same = {
+        "token": token,
+        "password": "firstTestPassword"
+    }
+    # # Test case where old and new passwords are the same
+    response = test_client.post("/api/v1/auth/reset-password-confirm", json=user_reset_data_same)
+    # old_password = get_user(email=user_data['email'],db = session).password
+    # new_password = user_reset_data_same["password"]
+    # assert old_password == new_password
+    assert response.status_code == 226
+    assert response.json() == {"detail": "New password is the same as the old password. Please choose a different password"}
+
+
+def test_reset_password_confirm_valid_data(test_client):
+
+    user_data = {
+        "email": "firstTest@user.com",
+        "password": "firstTestPassword"
+    }
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+    content_dict = response.json()
+
+    # Access the access_token
+    token = content_dict["access_token"]
+
+    user_reset_data = {
+        "token": token,
+        "password": "firstTestPassword2"
+    }
+
+    # Test case where token is valid and email is registered
+    response = test_client.post("/api/v1/auth/reset-password-confirm", json=user_reset_data)
+    assert response.status_code == 200
+    assert response.json() == {"detail": "Password reset successful"}
+
+
+def test_reset_password_confirm_bad_token(test_client):
+
+    user_data = {
+        "email": "firstTest@user.com",
+        "password": "firstTestPassword"
+    }
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+
+
+    user_reset_data_bad_token = {
+        "token": "bad_token",
+        "password": "firstTestPassword2"
+    }
+
+    # Test case where token is invalid
+    response = test_client.post("/api/v1/auth/reset-password-confirm", json=user_reset_data_bad_token)
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Invalid token"}
