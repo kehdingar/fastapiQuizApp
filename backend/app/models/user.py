@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean,DateTime
 from sqlmodel import SQLModel, Field, Relationship
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from fastapi import HTTPException
 from pydantic import field_validator
@@ -23,6 +23,7 @@ class User(SQLModel, table=True):
     is_superuser: bool = Field(sa_column=Column("is_superuser", Boolean, default=False))
     created_at: datetime = Field(sa_column=Column("created_at", DateTime, default=datetime.now))
     modified_at: datetime = Field(sa_column=Column("modified_at", DateTime, default=datetime.now, onupdate=datetime.now, nullable=False))
+    reports: Optional["Report"] = Relationship(back_populates="users")
 
 
 
