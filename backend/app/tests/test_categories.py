@@ -83,3 +83,10 @@ def test_fetch_all_categories(test_client):
     assert response.status_code == 200
     # Check if 'BACKEND' is present in the 'name' field of each dictionary
     assert len(response.json()) == 2 # Check the length of the list
+
+def test_fetch_all_categories_by_id(test_client):
+
+    # Send a request to create a question with the authenticated token
+    response = test_client.get("/api/v1/categories/2")
+    # Assert the response status code
+    assert response.status_code == 200
