@@ -49,7 +49,7 @@ def setup():
             "password":get_password_hash('firstInsructorTestPassword'),
             "role" :Role.INSTRUCTOR,
             }
-        instructor_db_user = User(email=instructor_data['email'],password=instructor_data['password'],role=instructor_data['password'])
+        instructor_db_user = User(email=instructor_data['email'],password=instructor_data['password'],role=instructor_data['role'])
 
         # Create a user at the beginning of the test
         user_data = UserCreate(email='firstTest@quiz.com', password=get_password_hash('firstTestPassword'))
