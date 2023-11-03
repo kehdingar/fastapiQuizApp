@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth,categories
+from app.api import auth,categories,questions
 from app.database.config import Base, engine
 
 Base.metadata.create_all(bind=engine)
@@ -23,3 +23,4 @@ app.add_middleware(
 # API routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(categories.router, prefix="/api/v1/categories", tags=["categories"])
+app.include_router(questions.router, prefix="/api/v1/questions", tags=["questions"])
