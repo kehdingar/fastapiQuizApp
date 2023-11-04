@@ -6,6 +6,11 @@ from jose import jwt
 from datetime import datetime, timedelta
 from app.models.user import User
 from app.api.utils.database import get_db
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import ExpiredSignatureError,jwt
+from fastapi import Request, HTTPException
+
+
 import os
 
 dotenv_path = find_dotenv(raise_error_if_not_found=True, usecwd=True)
@@ -29,3 +34,33 @@ def create_access_token(data: dict, expires_delta: timedelta):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, os.environ.get("SECRET_KEY"), algorithm=os.environ.get("ALGORITHM"))
     return encoded_jwt
+
+class JWTBearer(HTTPBearer):
+
+    def __init__(self, auto_error: bool = True):
+        super(JWTBearer, self).__init__(auto_error=auto_error)
+
+    async def __call__(self, request: Request):
+        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
+        if credentials:
+            if not credentials.scheme == "Bearer":
+                raise HTTPException(
+                    status_code=403, detail={"status": "Forbidden", "message": "Invalid authentication schema."})
+            if not self.verify_jwt(credentials.credentials):
+                raise HTTPException(
+                    status_code=403, detail={"status": "Forbidden", "message": "Invalid token or expired token."})
+            return credentials.credentials
+        else:
+            raise HTTPException(
+                status_code=403, detail={"status": "Forbidden", "message": "Invalid authorization code."})
+
+    @staticmethod
+    def verify_jwt(jwt_token: str):
+        try:
+            return True if jwt.decode(jwt_token, os.environ.get("SECRET_KEY"), algorithms=[os.environ.get("ALGORITHM")]) is not None else  None
+        except ExpiredSignatureError as e:
+            raise HTTPException(
+                    status_code=403, detail={"status": "Forbidden", "message": "Your Session has expired. Please login to renew","ref":"exp"})
+
+def extract_token(token: str):
+    return jwt.decode(token, os.environ.get("SECRET_KEY"), algorithms=[os.environ.get("ALGORITHM")])
