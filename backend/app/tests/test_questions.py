@@ -8,6 +8,7 @@ from app.models import *
 from app.models.user import Role, User
 from app.api.auth import get_password_hash
 from app.api.auth import verify_password
+from app.schemas.category import CategoryCreate
 
 
 
@@ -60,6 +61,18 @@ def setup():
         session.refresh(db_user)
         session.refresh(instructor_db_user)
 
+        category_data = CategoryCreate(name="BACKEND")
+        db_category = Category(**category_data.model_dump())
+
+        category_data_2 = CategoryCreate(name="FRONTEND")
+        db_category_2 = Category(**category_data_2.model_dump())
+
+        session.add(db_category)
+        session.add(db_category_2)
+        session.commit()
+        session.refresh(db_category)
+        session.refresh(db_category_2)        
+
 
 def tearDown():
     SQLModel.metadata.drop_all(bind=engine)
@@ -82,3 +95,72 @@ def test_initial_test_instructor_user():
     assert user.email =="firstInstructorTest@quiz.com"
     assert True == verify_password("firstTestPassword",hash_password)
     assert user.role =="Instructor"
+
+def test_create_questions_no_previledge(test_client):
+
+    user_data = {
+        "email": "firstTest@quiz.com",
+        "password": "firstTestPassword"
+    }
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+    content_dict = response.json()
+
+    # Access the access_token
+    token = content_dict["access_token"]
+
+    # Multiple Payload items
+    question_payload = [
+        {
+            "question": {
+                "text": "What is the capital of Cameroon?",
+                "category_id": 1
+            },
+            "options": [
+                {
+                    "answer": "Yaounde",
+                    "is_correct": True
+                },
+                {
+                    "answer": "Douala",
+                    "is_correct": False
+                },
+                {
+                    "answer": "USA",
+                    "is_correct": False
+                }
+            ]
+        },
+        {
+            "question": {
+                "text": "What is the capital of America?",
+                "category_id": 2
+            },
+            "options": [
+                {
+                    "answer": "Washington DC",
+                    "is_correct": True
+                },
+                {
+                    "answer": "Kiev",
+                    "is_correct": False
+                },
+                {
+                    "answer": "Atlanta",
+                    "is_correct": False
+                }
+            ]
+        }
+    ]    
+
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    # Send a request to create a question with the authenticated token
+    response = test_client.post("/api/v1/questions/", json=question_payload, headers=headers)
+    print(f"\n\n RESO {response.json()}")
+    # Assert the response status code
+    assert response.status_code == 403
+    # Assert the response body
+    assert response.json() == {'detail': 'Insufficient privileges'}
