@@ -1,3 +1,4 @@
+import pytest
 from app.schemas.user import UserCreate
 from app.api.auth import get_db, get_user
 from app.main import app
@@ -9,6 +10,7 @@ from app.models.user import Role, User
 from app.api.auth import get_password_hash
 from app.api.auth import verify_password
 from app.schemas.category import CategoryCreate
+
 
 
 
@@ -164,3 +166,82 @@ def test_create_questions_no_previledge(test_client):
     assert response.status_code == 403
     # Assert the response body
     assert response.json() == {'detail': 'Insufficient privileges'}
+
+
+@pytest.fixture
+def create_questions_previldge(test_client):
+
+    user_data = {
+        "email": "firstInstructorTest@quiz.com",
+        "password": "firstInsructorTestPassword"
+    }
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+    content_dict = response.json()
+
+    # Access the access_token
+    token = content_dict["access_token"]
+
+
+    # Multiple Payload items
+    question_payload = [
+        {
+            "question": {
+                "text": "What is the capital of Cameroon?",
+                "category_id": 1
+            },
+            "options": [
+                {
+                    "answer": "Bamenda",
+                    "is_correct": True
+                },
+                {
+                    "answer": "Douala",
+                    "is_correct": False
+                },
+                {
+                    "answer": "USA",
+                    "is_correct": False
+                }
+            ]
+        },
+        {
+            "question": {
+                "text": "What is the capital of America?",
+                "category_id": 1
+            },
+            "options": [
+                {
+                    "answer": "Washington DC",
+                    "is_correct": True
+                },
+                {
+                    "answer": "Kiev",
+                    "is_correct": False
+                },
+                {
+                    "answer": "Atlanta",
+                    "is_correct": False
+                }
+            ]
+        }
+    ]    
+
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    # Send a request to create a question with the authenticated token
+    response = test_client.post("/api/v1/questions/", json=question_payload, headers=headers)
+
+    # Send a POST request to create a question
+
+    # Assert that the request was successful
+    assert response.status_code == 201
+
+    # Get the response JSON
+    question_response = response.json()
+
+    question_payload = question_payload
+
+    return {'question_response':question_response,'question_payload':question_payload}
