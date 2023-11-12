@@ -245,3 +245,19 @@ def create_questions_previldge(test_client):
     question_payload = question_payload
 
     return {'question_response':question_response,'question_payload':question_payload}
+
+
+def test_create_questions_previldge(create_questions_previldge):
+    result = create_questions_previldge
+    question_response = result['question_response']
+    question_payload = result['question_payload']
+
+    # Assert that the created question matches the request payload
+    assert question_response == question_payload
+
+    # # Assert that the created options match the request payload
+    assert len(question_response) == 2
+
+    for response in question_response:
+        assert 'Cameroon' in response['question']['text'] or 'America' in response['question']['text'] , f"Expected text 'Cameroon' or 'America' in question, but got: {response['question']['text']}"
+
