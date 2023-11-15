@@ -261,3 +261,23 @@ def test_create_questions_previldge(create_questions_previldge):
     for response in question_response:
         assert 'Cameroon' in response['question']['text'] or 'America' in response['question']['text'] , f"Expected text 'Cameroon' or 'America' in question, but got: {response['question']['text']}"
 
+
+def test_get_questions_by_category(test_client):
+    user_data = {
+        "email": "firstInstructorTest@quiz.com",
+        "password": "firstInsructorTestPassword"
+    }
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+    content_dict = response.json()
+
+    # Access the access_token<
+    token = content_dict["access_token"]
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    # Send a request to create a question with the authenticated token
+    response_category = test_client.get(f"/api/v1/questions/category/1",headers=headers)
+    # Assert the response status code
+    assert response_category.status_code == 200

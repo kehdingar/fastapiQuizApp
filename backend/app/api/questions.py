@@ -8,6 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from app.schemas.question import QuizQuestionCreate
 from app.models.category import Category
 from app.models.question import Option, Question
+from app.api.utils.questions import fetch_questions_by_category
 
 
 router = APIRouter()
@@ -64,4 +65,16 @@ async def create_question(
         db.refresh(new_option)
     
     # Return the created question with options in the response
+    return questions
+
+@router.get("/category/{category_id}",)
+async def get_question_by_category(category_id: int,db: Session = Depends(get_db)):
+    category = db.query(Category).filter(Category.id == category_id).first()
+
+    if not category:
+        raise HTTPException(status_code=404, detail="Category does not exist")
+    questions = fetch_questions_by_category(category_id,db)
+
+    if not questions:
+        raise HTTPException(status_code=404, detail="No questions found for the specified category")
     return questions
