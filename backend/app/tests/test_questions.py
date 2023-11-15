@@ -281,3 +281,25 @@ def test_get_questions_by_category(test_client):
     response_category = test_client.get(f"/api/v1/questions/category/1",headers=headers)
     # Assert the response status code
     assert response_category.status_code == 200
+
+def test_get_question_by_id(test_client,create_questions_previldge):
+
+    result = create_questions_previldge
+    created_question = result['question_response']
+
+    user_data = {
+        "email": "firstInstructorTest@quiz.com",
+        "password": "firstInsructorTestPassword"
+    }    
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+    content_dict = response.json()
+
+    # Access the access_token
+    token = content_dict["access_token"]
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    response = test_client.get(f"/api/v1/questions/2",headers=headers)
+    assert response.status_code == 200
