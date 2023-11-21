@@ -28,3 +28,13 @@ def fetch_questions_by_category(category_id: int, db: Session):
         question_dict.append({'id':question.id,'text':question.text,'options':options})
 
     return question_dict
+
+
+def update_question_by_id(question_id:int,payload:dict,db: Session):
+    question = fetch_question_by_id(question_id,db)
+    if question:
+        for field, value in payload.items():
+            setattr(question, field, value)
+    db.commit()
+    db.refresh(question)
+    return question

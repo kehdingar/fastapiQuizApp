@@ -303,3 +303,33 @@ def test_get_question_by_id(test_client,create_questions_previldge):
 
     response = test_client.get(f"/api/v1/questions/2",headers=headers)
     assert response.status_code == 200
+
+
+def test_update_question(test_client,create_questions_previldge):
+
+    result = create_questions_previldge
+    created_question = result['question_response']
+
+    user_data = {
+        "email": "firstInstructorTest@quiz.com",
+        "password": "firstInsructorTestPassword"
+    }    
+    response = test_client.post("/api/v1/auth/login", json=user_data)
+    content_dict = response.json()
+
+    # Access the access_token<
+    token = content_dict["access_token"]
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    payload = {
+        'text': "Changed question",
+        'category_id': 56
+    }
+
+    response = test_client.put(f"/api/v1/questions/1",json=payload, headers=headers)
+    assert response.json()['text'] == 'Changed question'
+    assert response.json()['category_id'] == 56
+    assert response.status_code == 200

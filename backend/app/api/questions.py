@@ -8,7 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from app.schemas.question import QuizQuestionCreate
 from app.models.category import Category
 from app.models.question import Option, Question
-from app.api.utils.questions import fetch_question_by_id, fetch_questions_by_category
+from app.api.utils.questions import fetch_question_by_id, fetch_questions_by_category, update_question_by_id
 
 
 router = APIRouter()
@@ -87,3 +87,12 @@ async def get_question(question_id: int,db: Session = Depends(get_db),credential
     if question:
         return question
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
+
+@router.put("/{question_id}",response_model=Question )
+async def update_question(question_id:int,payload: dict,db: Session = Depends(get_db),credentials: HTTPAuthorizationCredentials = Security(JWTBearer())):
+    token = extract_token(credentials)
+    email = token['email']
+    question = update_question_by_id(question_id,payload,db)
+    if question:
+        return question
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")    
