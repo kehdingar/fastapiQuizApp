@@ -181,3 +181,9 @@ def create_quiz(test_client,get_instructor_header,create_questions):
 def test_create_quiz(create_quiz):
     created_quiz_response = create_quiz
     assert created_quiz_response.status_code == 201
+
+def test_get_quiz_by_id(test_client,create_quiz):
+    created_quiz_response = create_quiz
+    quiz_data = created_quiz_response.json()
+    response = test_client.get(f"/api/v1/quizzes/id/{quiz_data['id']}",)
+    assert response.status_code == 200
