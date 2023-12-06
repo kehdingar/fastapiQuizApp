@@ -67,3 +67,16 @@ async def evaluate_quiz(payload: dict,db: Session = Depends(get_db)):
     db.commit()
     db.refresh(score_data)
     return {'user':user, "quiz_id":quiz_id, "score":score,"total":total}
+
+@router.delete("/{quiz_id}",status_code=status.HTTP_200_OK)
+async def delete_quiz(quiz_id: int,db: Session = Depends(get_db),credentials: HTTPAuthorizationCredentials = Security(JWTBearer())):
+    token = extract_token(credentials)
+    if token['role'] != "Instructor":
+        raise HTTPException(status_code=403, detail="Not enough previledges")
+
+    record = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+    if record:
+        db.delete(record)
+        db.commit()
+    else:
+        raise HTTPException(status_code=404, detail="Quiz not found")
