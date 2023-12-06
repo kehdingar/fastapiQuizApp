@@ -207,3 +207,10 @@ def test_delete_quiz(test_client,create_quiz,get_instructor_header):
     response = test_client.delete(f"/api/v1/quizzes/{quiz_data['id']}", headers=headers)
     assert response.status_code == 200
 
+def test_delete_quiz_no_previledge(test_client,create_quiz,get_student_header):
+    created_quiz_response = create_quiz
+    quiz_data = created_quiz_response.json()
+    headers = get_student_header
+    response = test_client.delete(f"/api/v1/quizzes/{quiz_data['id']}", headers=headers)
+    assert response.status_code == 403
+
