@@ -21,3 +21,10 @@ def get_result_by_user_id(user_id: int, db: Session = Depends(get_db),credential
     if not report:
         raise HTTPException(status_code=404, detail="Result not found for user")    
     return report
+
+@router.get("/quiz/{quiz_id}",status_code=status.HTTP_200_OK)
+def get_result_by_quiz_id(quiz_id: int, db: Session = Depends(get_db),credentials: HTTPAuthorizationCredentials = Security(JWTBearer())):
+    report = db.query(Result).filter(Result.quiz_id == quiz_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Not results found")    
+    return report    

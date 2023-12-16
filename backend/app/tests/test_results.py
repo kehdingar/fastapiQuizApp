@@ -146,3 +146,11 @@ def test_get_result_by_user_id(test_client,get_student_header,create_quiz):
     for result in response.json():
         assert result["user_id"] == 1
     assert response.status_code == 200    
+
+
+def test_get_result_by_quiz_id(test_client,get_student_header):
+    headers = get_student_header
+    # Test the route
+    response = test_client.get(f"/api/v1/results/quiz/{1}",headers=headers)
+    assert response.json()["quiz_id"] == 1
+    assert response.status_code == 200
