@@ -114,3 +114,9 @@ def test_get_reports(test_client,get_instructor_header):
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["title"] == "Test Report"
+
+def test_unauthorized_get_reports(test_client,get_student_header):
+    headers = get_student_header
+    # Test the route
+    response = test_client.get("/api/v1/reports",headers=headers)
+    assert response.status_code == 403
