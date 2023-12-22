@@ -120,3 +120,11 @@ def test_unauthorized_get_reports(test_client,get_student_header):
     # Test the route
     response = test_client.get("/api/v1/reports",headers=headers)
     assert response.status_code == 403
+
+
+def test_get_report_by_id(test_client,get_student_header):
+    headers = get_student_header
+    # Test the route
+    response = test_client.get("/api/v1/reports/1",headers=headers)
+    assert response.json()["title"] == "Test Report"
+    assert response.status_code == 200

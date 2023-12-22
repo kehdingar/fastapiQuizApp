@@ -25,3 +25,8 @@ def get_reports(db: Session = Depends(get_db),credentials: HTTPAuthorizationCred
     if not reports:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No Report found")
     return reports
+
+@router.get("/{report_id}",status_code=status.HTTP_200_OK)
+def get_report_by_id(report_id: int, db: Session = Depends(get_db),credentials: HTTPAuthorizationCredentials = Security(JWTBearer())):
+    report = get_report(db, report_id)
+    return report
