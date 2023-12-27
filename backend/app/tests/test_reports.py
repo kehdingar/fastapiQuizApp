@@ -9,6 +9,7 @@ from app.models.user import Role, User
 from app.api.auth import get_password_hash
 from app.models.result import Result
 from app.api.utils.database import get_db
+from app.schemas.category import CategoryCreate
 
 # We have to import create_questions too in order to use create_quiz
 # Since create_quiz is dependent on create_questions in test_quizzes.py
@@ -62,13 +63,21 @@ def setup():
         db_user = User(**user_data.model_dump())
         # report_data = ReportCreate()
         test_report = Report(title="Test Report",description="Test desc",user_id=1,quiz_id=1)
+        category_data = CategoryCreate(name="BACKEND")
+        db_category = Category(**category_data.model_dump())
+        category_data_2 = CategoryCreate(name="FRONTEND")
+        db_category_2 = Category(**category_data_2.model_dump())          
         session.add(db_user)
         session.add(instructor_db_user)
         session.add(test_report)
+        session.add(db_category)
+        session.add(db_category_2)            
         session.commit()
         session.refresh(test_report)
         session.refresh(instructor_db_user)
         session.refresh(db_user)
+        session.refresh(db_category)
+        session.refresh(db_category_2)             
 
 def tearDown():
     SQLModel.metadata.drop_all(bind=engine)
@@ -128,3 +137,12 @@ def test_get_report_by_id(test_client,get_student_header):
     response = test_client.get("/api/v1/reports/1",headers=headers)
     assert response.json()["title"] == "Test Report"
     assert response.status_code == 200
+
+def test_get_report_by_user_id(test_client,get_student_header,create_quiz):
+    quiz_data = create_quiz.json()
+    quiz_payload = {
+        'user_id':1,
+        'submission': {'1':"Bameda",'2':'Washington DC'},
+        'quiz_id': quiz_data['id']
+    }
+    test_client.post(f"/api/v1/quizzes/evaluate",json=quiz_payload)

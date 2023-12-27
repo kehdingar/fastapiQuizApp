@@ -3,7 +3,8 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.models.report import Report
 from app.api.utils.database import get_db
-from app.api.utils.users import JWTBearer, extract_token
+from app.api.utils.users import JWTBearer, extract_token, get_user
+from app.models.result import Result
 
 
 router = APIRouter()
@@ -30,3 +31,12 @@ def get_reports(db: Session = Depends(get_db),credentials: HTTPAuthorizationCred
 def get_report_by_id(report_id: int, db: Session = Depends(get_db),credentials: HTTPAuthorizationCredentials = Security(JWTBearer())):
     report = get_report(db, report_id)
     return report
+
+@router.get("/user/{user_id}",status_code=status.HTTP_200_OK)
+def get_report_by_user_id(user_id: int, db: Session = Depends(get_db),credentials: HTTPAuthorizationCredentials = Security(JWTBearer())):
+    # get_usre will raise exception if not found
+    get_user(db,user_id)
+    result = db.query(Result).filter(Result.user_id == user_id).all()
+    report = db.query(Report).filter(Report.user_id == user_id).all()
+    db_report = {'result':result,'report':report}
+    return db_report
