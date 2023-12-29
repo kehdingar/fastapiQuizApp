@@ -25,6 +25,10 @@ def get_user(email: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
     return user
 
+def get_user_by_id(id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == id).first()
+    return user
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
