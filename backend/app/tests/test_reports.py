@@ -146,3 +146,19 @@ def test_get_report_by_user_id(test_client,get_student_header,create_quiz):
         'quiz_id': quiz_data['id']
     }
     test_client.post(f"/api/v1/quizzes/evaluate",json=quiz_payload)
+
+def test_get_report_by_quiz_id(test_client,get_student_header):
+    headers = get_student_header
+    quiz_payload = {
+        'user_id':1,
+        'submission': {'1':"Bameda",'2':'Washington DC'},
+        'quiz_id': 1
+    }
+    test_client.post(f"/api/v1/quizzes/evaluate",json=quiz_payload)
+
+    # Test the route
+    response = test_client.get(f"/api/v1/reports/quiz/{1}",headers=headers)
+    print(f"\n\nWOW RESULT {response.json()}")
+    assert response.json()['result']["quiz_id"] == 1
+    assert response.json()['report'] != None
+    assert response.status_code == 200
