@@ -15,6 +15,3 @@ class ReportUpdate(ReportBase):
 
 class Report(ReportBase):
     id: int
-
-    class Config:
-        orm_mode = True
