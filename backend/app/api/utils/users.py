@@ -9,8 +9,6 @@ from app.api.utils.database import get_db
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import ExpiredSignatureError,jwt
 from fastapi import Request, HTTPException
-
-
 import os
 
 dotenv_path = find_dotenv(raise_error_if_not_found=True, usecwd=True)
@@ -26,6 +24,7 @@ def get_user(email: str, db: Session = Depends(get_db)):
     return user
 
 def get_user_by_id(id: int, db: Session = Depends(get_db)):
+    print(f"\n\n\n DBBBBBBB {db}")
     user = db.query(User).filter(User.id == id).first()
     return user
 

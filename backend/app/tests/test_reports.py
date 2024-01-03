@@ -162,3 +162,45 @@ def test_get_report_by_quiz_id(test_client,get_student_header):
     assert response.json()['result']["quiz_id"] == 1
     assert response.json()['report'] != None
     assert response.status_code == 200
+
+
+@pytest.fixture
+def report_data():
+    # Define test data
+    report_data = {
+        "title": "Test Report",
+        "description": "Test Description",
+        "user_id": 1,
+        "quiz_id": 1
+    }
+    return report_data
+
+
+@pytest.fixture
+def create_report(test_client,report_data,get_instructor_header):
+    report_data = report_data
+    headers = get_instructor_header
+    response = test_client.post(f"/api/v1/reports/", json=report_data, headers=headers)
+    return response
+
+@pytest.fixture
+def create_report_unauthorized(test_client,report_data):
+    report_data = report_data
+    response = test_client.post(f"/api/v1/reports/", json=report_data)
+    return response
+
+
+def test_create_report_unauthorised(create_report_unauthorized,report_data):
+    response = create_report_unauthorized
+    assert response.status_code == 403
+
+def test_create_report(create_report,report_data):
+    response = create_report
+    created_report = response.json()
+    assert response.status_code == 201
+    assert created_report["title"] == report_data["title"]
+    assert created_report["description"] == report_data["description"]
+    assert created_report["user_id"] == report_data["user_id"]
+    assert created_report["quiz_id"] == report_data["quiz_id"]   
+
+
