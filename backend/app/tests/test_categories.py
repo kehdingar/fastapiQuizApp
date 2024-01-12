@@ -96,3 +96,14 @@ def test_create_category_unauthorised(test_client):
     response = test_client.post("/api/v1/categories/", json=category_data)
     # Assert the response status code
     assert response.status_code == 403
+
+def test_create_category(test_client,get_instructor_header):
+    # Send a request to create a category with authenticaion
+    headers = get_instructor_header
+    category_data = {
+        "name":"Python",
+    }
+    response = test_client.post("/api/v1/categories/", json=category_data, headers=headers)
+    # Assert the response status code
+    assert response.status_code == 201
+    assert response.json()['name'] == "Python"
