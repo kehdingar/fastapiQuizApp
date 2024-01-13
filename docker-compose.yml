@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  database:
+    container_name: Postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: quiz_db
+    ports:
+      - '5432:5432'      
+    volumes:
+      - data:/var/lib/postgresql/data:cached   
+
+  backend:
+    container_name: quiz_app
+    build: ./backend
+    restart: always
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - database
+
+
+  pgadmin:
+    container_name: PostgresAdmin
+    env_file: 
+      - ./backend/.env
+    restart: always
+    image: dpage/pgadmin4
+    ports:
+      - 5050:80
+    depends_on:
+      - database
+    volumes:
+      - pgdata:/var/lib/pgadmin
+
+volumes:
+  data:
+  pgdata:
+  backend:
