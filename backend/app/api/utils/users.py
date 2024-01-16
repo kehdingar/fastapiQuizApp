@@ -24,7 +24,6 @@ def get_user(email: str, db: Session = Depends(get_db)):
     return user
 
 def get_user_by_id(id: int, db: Session = Depends(get_db)):
-    print(f"\n\n\n DBBBBBBB {db}")
     user = db.query(User).filter(User.id == id).first()
     return user
 
