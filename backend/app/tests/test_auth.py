@@ -1,29 +1,9 @@
-from app.schemas.user import UserCreate
 from app.api.utils.database import get_db
 from app.main import app
-from sqlmodel import SQLModel
-from sqlalchemy import create_engine,StaticPool
-from sqlalchemy.orm import sessionmaker
-from app.models import *
-from app.models.user import User
 from app.api.utils.users import get_password_hash,verify_password
 from app.api.utils.users import get_user
+from .conftest import TestingSessionLocal
 
-
-SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_TEST_DATABASE_URL,
-    # This will make sure we don't get inconsistencies while writing tests. That's how sqlite works and we have to deal with it
-    connect_args={
-        "check_same_thread":False,
-    },
-    # We make sure its a static connection pool so that we connect to the same memory database
-    # This will allow us to create something in our database and later read it
-    poolclass=StaticPool,
-    )
-
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def override_get_db():
     db = TestingSessionLocal()
@@ -34,20 +14,24 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
-def setup():
-    SQLModel.metadata.create_all(bind=engine)
-    with TestingSessionLocal() as session:
-        # Create a user at the beginning of the test
-        user_data = UserCreate(email='firstTest@user.com', password=get_password_hash('firstTestPassword'))
-        db_user = User(**user_data.model_dump())
-        session.add(db_user)
-        session.commit()
-        session.refresh(db_user)
+def test_initial_test_user(initial_data):
+    db = TestingSessionLocal()
+    user = get_user(db=db, email="firstTest@quiz.com")
+    hash_password = get_password_hash("firstTestPassword")
+    assert user.email =="firstTest@quiz.com"
+    assert True == verify_password("firstTestPassword",hash_password)
+    assert user.role =="Student"
 
-def tearDown():
-    SQLModel.metadata.drop_all(bind=engine)
 
-def test_register_user(test_client):
+def test_initial_test_instructor_user(initial_data):
+    db = TestingSessionLocal()
+    user = get_user(db=db, email="firstInstructorTest@quiz.com")
+    hash_password = get_password_hash("firstTestPassword")
+    assert user.email =="firstInstructorTest@quiz.com"
+    assert True == verify_password("firstTestPassword",hash_password)
+    assert user.role =="Instructor"
+
+def test_register_user(test_client,initial_data):
     # Define the user data for registration
     user_data = {
         "email": "test@example.com",
@@ -60,17 +44,20 @@ def test_register_user(test_client):
     assert response.status_code == 201
     assert response.json()["email"] == "test@example.com"
 
-def test_verify_created_user():
+def test_verify_created_user(initial_data):
     db = TestingSessionLocal()
-    user = get_user(db=db, email="firstTest@user.com")
-    password = get_password_hash("firstTest@user.com")
-    assert user.email =="firstTest@user.com"
-    assert True == verify_password("firstTest@user.com",password )
+    regular_user = initial_data["regular_user"]
+    user = get_user(db=db, email=regular_user.email)
+    password = get_password_hash(regular_user.email)
+    assert user.email == regular_user.email
+    assert True == verify_password(regular_user.email,password )
 
-def test_login(test_client):
+def test_login(test_client,initial_data):
     # Simulate a login request
+    regular_user = initial_data["regular_user"]
+
     user_data = {
-        "email": "firstTest@user.com",
+        "email": regular_user.email,
         "password": "firstTestPassword"
     }
     response = test_client.post("/api/v1/auth/login", json=user_data)
@@ -80,9 +67,11 @@ def test_login(test_client):
     assert "token_type" in response.json()
 
 
-def test_reset_password(test_client):
+def test_reset_password(test_client,initial_data):
+
+    regular_user = initial_data["regular_user"]
     # Test case where email is registered
-    response = test_client.post("/api/v1/auth/reset-password", json={"email": "firstTest@user.com"})
+    response = test_client.post("/api/v1/auth/reset-password", json={"email":regular_user.email})
     assert response.status_code == 200
     assert response.json() == {"detail": "Password reset email sent"}
 
@@ -91,10 +80,11 @@ def test_reset_password(test_client):
     assert response.status_code == 400
     assert response.json() == {"detail": "Email not registered"}
 
-def test_reset_password_confirm_same_password(test_client):
+def test_reset_password_confirm_same_password(test_client,initial_data):
+    regular_user = initial_data["regular_user"]
 
     user_data = {
-        "email": "firstTest@user.com",
+        "email": regular_user.email,
         "password": "firstTestPassword"
     }
     response = test_client.post("/api/v1/auth/login", json=user_data)
@@ -116,10 +106,11 @@ def test_reset_password_confirm_same_password(test_client):
     assert response.json() == {"detail": "New password is the same as the old password. Please choose a different password"}
 
 
-def test_reset_password_confirm_valid_data(test_client):
+def test_reset_password_confirm_valid_data(test_client,initial_data):
+    regular_user = initial_data["regular_user"]
 
     user_data = {
-        "email": "firstTest@user.com",
+        "email": regular_user.email,
         "password": "firstTestPassword"
     }
     response = test_client.post("/api/v1/auth/login", json=user_data)
@@ -139,10 +130,11 @@ def test_reset_password_confirm_valid_data(test_client):
     assert response.json() == {"detail": "Password reset successful"}
 
 
-def test_reset_password_confirm_bad_token(test_client):
+def test_reset_password_confirm_bad_token(test_client,initial_data):
+    regular_user = initial_data["regular_user"]
 
     user_data = {
-        "email": "firstTest@user.com",
+        "email": regular_user.email,
         "password": "firstTestPassword"
     }
     response = test_client.post("/api/v1/auth/login", json=user_data)
