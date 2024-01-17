@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth,categories,questions,quizzes,results,reports
+from app.api import auth,categories,questions,quizzes,results,reports,users
 from app.database.config import Base, engine
 
 Base.metadata.create_all(bind=engine)
@@ -22,9 +22,9 @@ app.add_middleware(
 
 # API routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(categories.router, prefix="/api/v1/categories", tags=["categories"])
 app.include_router(questions.router, prefix="/api/v1/questions", tags=["questions"])
 app.include_router(quizzes.router, prefix="/api/v1/quizzes", tags=["quizzes"])
 app.include_router(results.router, prefix="/api/v1/results", tags=["results"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
-
