@@ -1,0 +1,15 @@
+-> After cloning repository you run [docker-compose up --build]
+
+-> To run test on your host machine
+    1. Create a virtual environment [python3 -m venv venv]
+    2. Activate the virtual environment [venv\Scripts\activate] for windows and [source venv/bin/activate for mac/Linux]
+    3. Enter [export TESTING=1] to use sqlite database for test
+    4. Run [coverage run -m pytest -v] to run all tests and [pytest ./app/tests/"test_file name"] for single tests
+
+-> To run test on docker
+    1. docker exec -it quiz_app bash
+    2. Run the same commands as you would in your host machine for coverage and individual tests
+
+-> If you make changes to any model or add a new model you have to do the following
+    1. While your container is running, go to bash [docker exec -it quiz_app bash]
+    2. Run [alembic revision --autogenerate -m "Your message] then [alembic upgrade head]
