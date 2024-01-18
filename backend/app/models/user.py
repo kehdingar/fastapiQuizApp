@@ -3,7 +3,8 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import List, Optional
 from datetime import datetime
 from fastapi import HTTPException
-from pydantic import field_validator
+from pydantic import field_validator,EmailStr,ValidationError
+
 
 
 from enum import Enum
@@ -16,7 +17,7 @@ class User(SQLModel, table=True):
     __tablename__ = "users"
 
     id: int = Field(sa_column=Column("id", Integer, primary_key=True, index=True))
-    email: str = Field(sa_column=Column("email", String, unique=True))
+    email: EmailStr = Field(sa_column=Column("email", String, unique=True))
     password: str = Field(sa_column=Column("password", String))
     role: Role = Field(sa_column=Column("role", String, default=Role.STUDENT))
     is_active: bool = Field(sa_column=Column("is_active", Boolean, default=True))
@@ -27,9 +28,10 @@ class User(SQLModel, table=True):
 
 
 
-@field_validator("role")
-def validate_role(cls, role: Role):
-    # go to database and check user role
-    if role not in [Role.INSTRUCTOR, Role.STUDENT]:
-        raise HTTPException(status_code=400, detail="Invalid role. Please choose Instructor or Student.")
-    return role
+    @field_validator("role")
+    def validate_role(cls, role: Role):
+        # go to database and check user role
+        if role not in [Role.INSTRUCTOR, Role.STUDENT]:
+            raise HTTPException(status_code=400, detail="Invalid role. Please choose Instructor or Student.")
+        return role
+
