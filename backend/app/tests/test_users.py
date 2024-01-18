@@ -16,36 +16,39 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
-def test_create_user_with_valid_email(test_client):
+def test_create_user_with_valid_email(test_client, get_instructor_header):
+    headers = get_instructor_header
     user_data = {
         "email": "valid@email.com",
         "password": "strong_password",
         "role": Role.STUDENT,
     }
-    response = test_client.post("/api/v1/users", json=user_data)
+    response = test_client.post("/api/v1/users", json=user_data, headers=headers)
     assert response.status_code == 201
     data = response.json()
     assert data["email"] == user_data["email"]
     assert data["role"] == user_data["role"]
 
-def test_create_user_with_invalid_email(test_client):
+def test_create_user_with_invalid_email(test_client, get_instructor_header):
+    headers = get_instructor_header
     user_data = {
         "email": "invalid_email",  # Missing domain
         "password": "strong_password",
         "role": Role.STUDENT,
     }
-    response = test_client.post("/api/v1/users", json=user_data)
+    response = test_client.post("/api/v1/users", json=user_data, headers=headers)
     assert response.status_code == 422  # Unprocessable Entity
     assert response.json()['detail'][0]['msg'] == "value is not a valid email address: The email address is not valid. It must have exactly one @-sign."
 
-def test_create_user_with_duplicate_email(test_client, initial_data):
+def test_create_user_with_duplicate_email(test_client, initial_data, get_instructor_header):
+    headers = get_instructor_header
     email = "firstTest@quiz.com"  # Existing user email
     user_data = {
         "email": email,
         "password": "strong_password",
         "role": Role.STUDENT,
     }
-    response = test_client.post("/api/v1/users", json=user_data)
+    response = test_client.post("/api/v1/users", json=user_data, headers=headers)
     assert response.status_code == 409  # Conflict
     assert response.json() == {"detail": "email already registered"}
 

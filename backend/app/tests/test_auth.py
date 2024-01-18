@@ -31,14 +31,15 @@ def test_initial_test_instructor_user(initial_data):
     assert True == verify_password("firstTestPassword",hash_password)
     assert user.role =="Instructor"
 
-def test_register_user(test_client,initial_data):
+def test_register_user(test_client,initial_data, get_instructor_header):
+    headers = get_instructor_header
     # Define the user data for registration
     user_data = {
         "email": "test@example.com",
         "password": "testpassword"
     }
     # Send a POST request to the /register endpoint
-    response = test_client.post("/api/v1/auth/register", json=user_data)
+    response = test_client.post("/api/v1/auth/register", json=user_data, headers=headers)
 
     # Assert the response status code and the returned user data
     assert response.status_code == 201

@@ -1,11 +1,12 @@
 from dotenv import load_dotenv,find_dotenv
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.models.user import User
 from jose import JWTError, jwt
 from app.schemas.user import UserCreate,UserCreateResponse, UserLogin, UserResetPassword, UserResetPasswordConfirm
 from app.api.utils.database import get_db
-from app.api.utils.users import get_user, get_password_hash,verify_password,create_access_token
+from app.api.utils.users import JWTBearer, get_user, get_password_hash,verify_password,create_access_token
 from app.api.utils.email import send_password_reset_email
 from datetime import timedelta
 import os
@@ -18,8 +19,9 @@ load_dotenv(dotenv_path)
 router = APIRouter()
 
 @router.post("/register", status_code=status.HTTP_201_CREATED,response_model=UserCreateResponse)
-async def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = await create_user(user,db)
+async def register(user: UserCreate, db: Session = Depends(get_db),credentials: HTTPAuthorizationCredentials = Security(JWTBearer())):
+    db_user = await create_user(user,db,credentials)
+    print(f"\n\n\n DBBBBBBBBBBBBB USER : {db_user}")
     return db_user
 
 @router.post("/login",status_code=status.HTTP_202_ACCEPTED)
